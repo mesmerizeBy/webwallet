@@ -1,0 +1,341 @@
+  <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="./lib/js/jquery-3.3.1.min.js"></script>
+    <script src="https://cdn.bootcss.com/popper.js/1.12.5/umd/popper.min.js"></script>
+    <script type="text/javascript" src="./lib/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./lib/js/ethereumjs-tx-1.3.3.min.js"></script>
+    <script type="text/javascript" src="./lib/js/web3.min.js"></script>
+    <script type="text/javascript" src="./lib/js/bundle.js"></script>
+    <script type="text/javascript" src="./lib/js/bignumber.js"></script>
+    <script type="text/javascript" src="./lib/js/eth.js"></script>
+    <script type="text/javascript" src="./lib/js/btc.js"></script>
+    <script type="text/javascript" src="./lib/js/usdt.js"></script>
+    <script type="text/javascript" src="./lib/js/method.js"></script>
+    <!-- <script type="text/javascript" src="./lib/js/db.js"></script>  background:url(img/banner2.png)  no-repeat fixed top; -->
+    <link rel="stylesheet" type="text/css" href="./lib/css/bootstrap.min.css">
+    <title>zhidou</title>
+    <style type="text/css">
+    	*{
+    		margin: 0;
+    		padding:0;
+    		font-family: "微软雅黑";
+    	}
+    	html,body{ 
+    		width:100%;
+    		height: 100%;
+    		background-color: #F0F8FF;
+    		padding-top: 10px;
+    	}
+    	.balance{
+    		position: absolute;
+    		top:25%;
+			left:50%;
+			-webkit-transform: translate(-50%,0);
+			-moz-transform: translate(-50%,0);
+			transform:translate(-50%,0);
+			font-size: 30px;
+			font-weight: 700;
+			color: #000;
+			margin: 0;
+    	}
+    	.tag{
+    		position: absolute;
+    		bottom:0px;
+			left:50%;
+			-webkit-transform: translate(-50%,-50%);
+			-moz-transform: translate(-50%,-50%);
+			transform:translate(-50%,-50%);
+			font-size: 20px;
+			font-weight: 500;
+			color: #000;
+    	}
+    	
+    </style>
+    <script id="tplList" type="text/template">
+    	<tr>
+			<td ><a href="#" onclick="get$name$Info('$address$',this)" id='$address$' key='$id$' class=" btn btn-outline-primary $name$" >$raddress$</a></td>
+			
+			<td><button type="button" class="btn btn-light" >交易记录</button></td>
+			<td><a  class="btn btn-outline-secondary" onclick="exportKey('$id$','$name$')" download="key.txt">导出为keystore文件</a></td>
+			<td><button type="button" class="btn btn-warning" onclick="method.del($id$,'$name$')">删除</button></td>
+		</tr>
+    </script>
+    <script id="tkList" type="text/template">
+    	<tr data-toggle="modal" data-target="#myModal" onclick="sendtoken(this)">
+			<td class="btn btn-light w-100" data-toggle="tooltip" data-placement="bottom" title="点击进行交易!" id="$address$">
+				<img  src="img/eth.jpg" class="float-left" alt="Card image" data='$data$' style="width:30px;">
+				<a href="#"  class="float-left btn" >$balance$&emsp;$tSymbol$ </a>
+				<a href="#"  class="float-right " >$tokenAddress$ </a>
+			</td>
+		</tr>
+    </script>
+    <script id="transactTk" type="text/template">
+    	<div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text">name</span>
+	      </div>
+	      <input type="text" class="form-control" value="$tname$" disabled>
+	    </div>
+	    <div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text">当前余额</span>
+	      </div>
+	      <input type="text" class="form-control tkbalance" value="$balance$ $tSymbol$" disabled>
+	    </div>
+	    <div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text" >当前账户</span>
+	      </div>
+	      <input type="text" class="form-control" id="from" value="$address$" disabled>
+	    </div>
+	    <div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text" >接收地址</span>
+	      </div>
+	      <input type="text" class="form-control" id="to" placeholder="输入接收地址">
+	    </div>
+	    <div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text" >gas price</span>
+	      </div>
+	      <input type="text" class="form-control" id="gas" placeholder="单位gwei(提示：gas price越高，交易成功率越高)">
+	    </div>
+	    <div class="input-group mb-3">
+			<input type="text" class="form-control" id="value" placeholder="发送量">
+			<div class="input-group-append">
+				<button class="btn btn-success" id="sendtok" type="button" >Send</button>  
+			</div>
+		</div>
+		<div class="progress fade" id="pro">
+			<div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+		</div>
+		<p id="tokenstatus"></p>
+    </script>
+    <script id="transactUsdt" type="text/template">
+    	<div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text">name</span>
+	      </div>
+	      <input type="text" class="form-control" value="$tname$" disabled>
+	    </div>
+	    <div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text">当前余额</span>
+	      </div>
+	      <input type="text" class="form-control tkbalance" value="$balance$ $tSymbol$" disabled>
+	    </div>
+	    <div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text" >当前账户</span>
+	      </div>
+	      <input type="text" class="form-control" id="from" value="$address$" disabled>
+	    </div>
+	    <div class="input-group mb-3 input-group-sm">
+	      <div class="input-group-prepend">
+	        <span class="input-group-text" >接收地址</span>
+	      </div>
+	      <input type="text" class="form-control" id="to" placeholder="输入接收地址">
+	    </div>
+	    <div class="input-group mb-3">
+			<input type="text" class="form-control" id="value" placeholder="发送量">
+			<div class="input-group-append">
+				<button class="btn btn-success" id="sendtok" type="button" >Send</button>  
+			</div>
+		</div>
+		<div class="progress fade" id="pro" >
+			<div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+		</div>
+		<p id="tokenstatus"></p>
+    </script>
+    
+    <script type="text/javascript">
+    	$(function(){
+    		$('[data-toggle="tooltip"]').tooltip();})
+    	// <tr data-bignumberid="$id$" onclick="select(this,$address$)" name="acinfo"> 
+	    //     <td class="llist" data-key="address" data-id="$id$" >$address$</td>
+	    //     <td class="llist" data-key="privateKey" data-id="$id$" >$privateKey$</td>
+	    //     <td class="llist"><button class="jsListDel" onclick="del($id$)" data-id="$id$">删除账户</button></td>
+	    // </tr>
+    </script>
+  </head>
+  <body>
+  	<div class="container w-75" style=" height: 10%; margin: 0 auto; background-color:#fff;box-shadow: 0 0 5px #888888; padding-top: 20px; text-align: center;">
+  		<h2 style="">
+  			胡温钱包
+  		</h2>
+  	</div>
+    <div class="container w-75" style=" height: 20%; margin: 0 auto; background-color:#fff;box-shadow: 0 0 5px #888888; ">
+    	<div class="row" style="height: 100%;">
+		  <div class="col" style="height: 100%; padding: 0;" data-toggle="modal" data-target="#myModal" id="sowt" onclick="sendtoken(this)">
+		  	<div class="btn btn-light" data-toggle="tooltip" data-placement="bottom" title="点击进行交易!" style="width: 100%; height: 100%;padding: 20px; position: absolute; ">
+				<img class="card-img-top" data=" s" src="img/logo.png" alt="Card image" style="width:30px;position: absolute; top: 30%;left: 10px;">
+				<p id="sowBalance" class="balance" ><span style="font-size: 15px;">请先点击下方选择以太坊账户</span></p>
+				<a href="#" class="tag btn" >SOW</a>
+			</div>
+		  </div>
+		  <div class="col" style="height: 100%; padding: 0;" data-toggle="modal" data-target="#myModal" id="etht" onclick="sendEth(this)">
+		  	<div class="btn btn-light" data-toggle="tooltip" data-placement="bottom" title="点击进行交易!" style="width: 100%; height: 100%;padding: 20px; position: absolute; ">
+				<img class="card-img-top" src="img/eth.jpg" alt="Card image" style="width:30px;position: absolute; top: 30%;left: 10px;">
+				<p id="ethBalance" class="balance" ><span style="font-size: 15px;">请先点击下方选择以太坊账户</span></p>
+				<a href="#" class="tag btn" >ETH</a>
+			</div>
+		  </div>
+		  <div class="col" style="height: 100%; padding: 0;" data-toggle="modal" data-target="#myModal" onclick="sendBtc(this)">
+		  	<div class="btn btn-light" data-toggle="tooltip" data-placement="bottom" title="点击进行交易!" style="width: 100%; height: 100%;padding: 20px; position: absolute; ">
+				<img class="card-img-top" src="img/timg.jpg" alt="Card image" style="width:30px;position: absolute; top: 30%;left: 10px;">
+				<p id="btcBalance" class="balance" ><span style="font-size: 15px;">请先点击下方选择比特币账户</span></p>
+				<a href="#" class="tag btn " >BTC</a>
+			</div>
+		  </div>
+		  <div class="col" style="height: 100%; padding: 0;" data-toggle="modal" data-target="#myModal" onclick="sendUsdt(this)">
+		  	<div class="btn btn-light" data-toggle="tooltip" data-placement="bottom" title="点击进行交易!" style="width: 100%; height: 100%;padding: 20px; position: absolute; ">
+				<img class="card-img-top" src="img/usdt.jpg" alt="Card image" style="width:30px;position: absolute; top: 30%;left: 10px;">
+				<p id="usdtBalance" class="balance" ><span style="font-size: 15px;">请先点击下方选择usdt账户</span></p>
+				<a href="#" class="tag btn " >USDT</a>
+			</div>
+		  </div>
+		</div>
+    </div>
+    <div class="container w-75" style=" height: 40%; margin: 0 auto; margin-top: 10px;box-shadow:0 0 5px #888888; background-color:#fff; ">
+    	<ul class="nav nav-tabs nav-justified" role="tablist" style="height: 10%;">
+			<li class="nav-item">
+			  <a class="nav-link active border-bottom-0" data-toggle="tab" onclick="method.show('eth')" href="#eth">以太坊账户</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link border-bottom-0" data-toggle="tab" href="#btc" onclick="method.show('btc')">比特币账户</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link border-bottom-0" data-toggle="tab" onclick="method.show('usdt')" href="#usdt">USDT账户</a>
+			</li>
+		</ul>
+		<div class="tab-content" style="height: 90%;">
+		  <div class="tab-pane active container  fade show" style="height: 100%;" id="eth">
+		  	<div style="width: 100%; height: 70%; overflow: auto;">
+		  		<table class="table table-hover">
+					<thead>
+					  <tr>
+					    <th>账户地址</th>
+					    <th><button type="button" class="btn btn-primary" onclick="createEthAccount()">创建账户</button></th>
+					  </tr>
+					</thead>
+					<tbody id="ethaddresses">
+					  
+					</tbody>
+				</table>
+		  	</div>
+		  	<div style="width: 100%; height: 20%; margin-top: 10px;">
+		  		
+		  		<form method="post"   enctype="multipart/form-data" class="form-inline" id="ethfile">
+		  			<input type="file" name="fileimport"  onchange="importkey('eth')" value="选择文件导入账户(keystore)">
+		  		</form>
+			  	 <!-- <span>点击币种进行交易</span> -->
+
+			  	<div class="input-group mb-3">
+					<input type="password" class="form-control" id="ethprivateKey" placeholder="在此输入私钥导入账户（不带0x）">
+					<div class="input-group-append">
+						<button class="btn btn-info" type="button" onclick="getEthaddress()">导入账户</button>  
+					</div>
+				</div>
+		  	</div>
+		  		
+		  </div>
+		  <div class="tab-pane container fade" style="height: 100%;" id="btc">
+			<div style="width: 100%; height: 70%; overflow: auto;">
+		  		<table class="table table-hover">
+					<thead>
+					  <tr>
+					    <th>账户地址</th>
+					    <th><button type="button" class="btn btn-primary" onclick="createBtcAccount()">创建账户</button></th>
+					  </tr>
+					</thead>
+					<tbody id="btcaddresses">
+					  
+					</tbody>
+				</table>
+		  	</div>
+		  	<div style="width: 100%; height: 20%; margin-top: 10px;">
+		  		
+		  		<form method="post"   enctype="multipart/form-data" class="form-inline" id="btcfile">
+		  			<input type="file" name="fileimport"  onchange="importkey('btc')" value="选择文件导入账户(keystore)">
+		  		</form>
+		  		<div class="input-group mb-3">
+					<input type="password" class="form-control" id="btcprivateKey" placeholder="在此输入私钥导入账户（不带0x）">
+					<div class="input-group-append">
+						<button class="btn btn-info" type="button" onclick="exportAddress('btc')">导入账户</button>  
+					</div>
+				</div>
+		  	</div>
+		  </div>
+		  <div class="tab-pane container fade" style="height: 100%;" id="usdt">
+			<div style="width: 100%; height: 70%; overflow: auto;">
+		  		<table class="table table-hover">
+					<thead>
+					  <tr>
+					    <th>账户地址</th>
+					    <th><button type="button" class="btn btn-primary" onclick="createUsdtAccount()">创建账户</button></th>
+					  </tr>
+					</thead>
+					<tbody id="usdtaddresses">
+					  
+					</tbody>
+				</table>
+		  	</div>
+		  	<div style="width: 100%; height: 20%; margin-top: 10px;">
+		  		<form method="post"   enctype="multipart/form-data" class="form-inline" id="usdtfile">
+		  			<input type="file" name="fileimport"  onchange="importkey('usdt')" value="选择文件导入账户(keystore)">
+		  		</form>
+			  	<div class="input-group mb-3">
+					<input type="password" class="form-control" id="usdtprivateKey" placeholder="在此输入私钥导入账户(不带0x)">
+					<div class="input-group-append">
+						<button class="btn btn-info" type="button" onclick="exportAddress('usdt')">导入账户</button>  
+					</div>
+				</div>
+		  	</div>
+		  </div>
+		</div>
+		</div>
+		<div class="container w-75" style=" height: 35%; margin: 0 auto; margin-top: 10px;box-shadow:0 0 5px #888888; background-color:#fff; ">
+			<div style="width: 100%; height: 20%; font-size: 20px; font-weight: 500;">
+				token列表 <button type="button" class="btn btn-success float-right" onclick="method.addtoken()">添加token</button>
+				<input type="text" class="form-control float-right" id="tokenaddress" placeholder="输入token地址导入">
+			</div>
+			<div style="width: 100%; height: 80%; overflow: auto;">
+				<table class="table table-hover">
+					<tbody id="tlist">
+					  
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+    </div>
+
+    <!-- 模态框 -->
+  <div class="modal fade" id="myModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+   
+        <!-- 模态框头部 -->
+        <div class="modal-header">
+          <h4 class="modal-title">您正在进行交易</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+   
+        <!-- 模态框主体 -->
+        <div class="modal-body" id="tx" style="height: 500px;">
+          
+        </div>
+   
+        <!-- 模态框底部 -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+        </div>
+   
+      </div>
+    </div>
+  </div>
+  </body>
+</html>

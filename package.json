@@ -1,0 +1,39 @@
+{
+  "name": "webwallet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "Buffer": "0.0.0",
+    "assert": "^1.4.1",
+    "bigi": "^1.4.2",
+    "bip39": "^2.5.0",
+    "bitcoinjs-lib": "^3.3.2",
+    "blockcypher": "^0.2.0",
+    "browserify": "^16.2.2",
+    "coinstring": "^2.3.0",
+    "connect-multiparty": "^2.1.1",
+    "crypto": "^1.0.1",
+    "ecdsa": "^0.7.0",
+    "ecurve": "^1.0.6",
+    "ejs": "^2.6.1",
+    "ethereumjs-util": "^5.2.0",
+    "ethereumjs-wallet": "^0.6.0",
+    "express": "^4.16.3",
+    "keccak": "^1.4.0",
+    "node-rsa": "^1.0.0",
+    "querystring": "^0.2.0",
+    "randombytes": "^2.0.6",
+    "regtest": "0.0.3",
+    "secp256k1": "^3.5.0",
+    "sha3": "^1.2.2"
+  }
+}
