@@ -1,3 +1,3 @@
 # webwallet
 区块链钱包
-![钱包效果](https://github.com/mesmerizeBy/webwallet/raw/master/QQ图片20200715105120.png)
+![钱包效果](http://111.230.147.227/ueditor/php/upload/image/20200715/1594782571601291.png)
